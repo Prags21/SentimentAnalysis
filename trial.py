@@ -25,7 +25,7 @@ with open('result.csv', 'a') as csvFile:
     dict_writer = csv.DictWriter(csvFile, fieldnames=keys)
     dict_writer.writeheader()
 
-    for tweet in tweepy.Cursor(api.search, q='#chandrayaan2 -filter:retweets', since = "2019-07-22", until = "2019-07-23", rpp=100, lang = "en", tweet_mode='extended').items(1500):
+    for tweet in tweepy.Cursor(api.search, q='#chandrayaan2 -filter:retweets', since = "2019-07-23", until = "2019-07-24", rpp=100, lang = "en", tweet_mode='extended').items(1500):
         dict_ = {'Screen Name': str(tweet.user.screen_name),
                  'User Name': tweet.user.name.encode('utf-8'),
                  'Tweet Created At': str(tweet.created_at),
