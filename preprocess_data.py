@@ -2,11 +2,11 @@
 import csv
 import re
 import pandas as pd
-
+from textblob import TextBlob
 listOfTweets=[]
 
 data = pd.read_csv("result.csv", na_values = ['no info', '.'])
-keys=['User Name', 'Tweet Created At', 'Tweet Text', 'User Location', 'Retweet Count']
+keys=['User Name', 'Tweet Created At', 'Tweet Text', 'User Location', 'Retweet Count','Polarity','Subjectivity']
 with open('preprocess.csv', 'a') as csvFile:
     dict_writer = csv.DictWriter(csvFile, fieldnames=keys)
     dict_writer.writeheader()
@@ -23,12 +23,16 @@ with open('preprocess.csv', 'a') as csvFile:
         tweet = tweet.strip('\'"')
         # Remove additional white spaces
         tweet = re.sub('[\s]+', ' ', tweet)
+        blob = TextBlob(tweet.decode('utf-8'))
+        print(blob.sentiment.polarity)
         dic_ = {
          'User Name': tweets[1]['User Name'],
          'Tweet Created At': tweets[1]['Tweet Created At'],
          'Tweet Text': tweet,
          'User Location': tweets[1]['User Location'],
          'Retweet Count': tweets[1]['Retweet Count'],
+         'Polarity': blob.sentiment.polarity,
+         'Subjectivity': blob.sentiment.subjectivity
         }
         listOfTweets.append(dic_)
         # writing in csv
