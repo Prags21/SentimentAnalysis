@@ -10,10 +10,11 @@ from random import randint
 warnings.filterwarnings("ignore")
 
 #df = pd.DataFrame({'number':['123','234','345'],'contactnumber':['234','345','123'],'callduration':[1,2,4]})
-df = pd.read_csv('/content/result (6).csv', encoding = "ISO-8859-1")
+df = pd.read_csv('/content/r.csv', encoding = "ISO-8859-1")
 listOfTweets=[]
+d = {}
 
-G = None
+G = nx.DiGraph()
 def get_rt_sources(tweet):
     rt_patterns = re.compile(r"(RT|via)((?:\b\W*@\w+)+)", re.IGNORECASE)
     return [ source.strip()
@@ -30,36 +31,17 @@ for tweet in df.iterrows():
         dict_={'RT':rt_source,
               'user':tweet[1]['Screen Name'],
               'RT_Count':tweet[1]['Retweet Count']}
+        G.add_edges_from([(rt_source,tweet[1]['Screen Name'])], weight=tweet[1]['Retweet Count'])
+        d[rt_source]="Influencer"
+        d[tweet[1]['Screen Name']]="U"
+
         listOfTweets.append(dict_)
 df1 = pd.DataFrame(listOfTweets)
-#print(listOfTweets)
-G = nx.from_pandas_edgelist(df1,'RT','user')
-
-# G = nx.from_pandas_edgelist(df,'number','contactnumber', edge_attr='callduration')
-#durations = [i['callduration'] for i in dict(G.edges).values()]
-labels = [i for i in dict(G.nodes).keys()]
-print(labels)
-labels = {i:i for i in dict(G.nodes).keys()}
-print(labels)
-
-print(a)
-fig, ax = plt.subplots(figsize=(12,5))
+print(d)
+#G = nx.from_pandas_edgelist(df1,'RT','user')
 pos = nx.spring_layout(G)
-nx.draw_networkx_nodes(G, pos, ax = ax, labels=True)
-nx.draw_networkx_edges(G, pos, width=a, ax=ax)
-_ = nx.draw_networkx_labels(G, pos, labels, ax=ax)
-# #df = pd.DataFrame({'number':['123','234','345'],'contactnumber':['234','345','123'],'callduration':[1,2,4]})
-# df = pd.read_csv('../r.csv', encoding = "ISO-8859-1")
+nx.draw_networkx_nodes(G, pos, cmap=plt.get_cmap('jet'), node_size = 50)
+nx.draw_networkx_edges(G, pos, edge_color='r', arrows=True)
+nx.draw_networkx_labels(G, pos, labels=d, ax=ax)
 
-# df
-
-# G = nx.from_pandas_edgelist(df,'number','contactnumber', edge_attr='callduration')
-# durations = [i['callduration'] for i in dict(G.edges).values()]
-# labels = [i for i in dict(G.nodes).keys()]
-# labels = {i:i for i in dict(G.nodes).keys()}
-
-# fig, ax = plt.subplots(figsize=(12,5))
-# pos = nx.spring_layout(G)
-# nx.draw_networkx_nodes(G, pos, ax = ax, labels=True)
-# nx.draw_networkx_edges(G, pos, width=durations, ax=ax)
-# _ = nx.draw_networkx_labels(G, pos, labels, ax=ax)
+plt.show()
