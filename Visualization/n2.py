@@ -1,18 +1,17 @@
 # pylint: skip-file
 import matplotlib
 import re
-
+import numpy
 import pandas as pd
 import networkx as nx
 import matplotlib.pyplot as plt
 import warnings
-from random import randint
+from collections import *
 warnings.filterwarnings("ignore")
 
-#df = pd.DataFrame({'number':['123','234','345'],'contactnumber':['234','345','123'],'callduration':[1,2,4]})
 df = pd.read_csv('/content/r.csv', encoding = "ISO-8859-1")
 listOfTweets=[]
-d = {}
+d =[]
 
 G = nx.DiGraph()
 def get_rt_sources(tweet):
@@ -22,26 +21,43 @@ def get_rt_sources(tweet):
                  for source in tuple
                      if source not in ("RT", "via") ]
 for tweet in df.iterrows():
-    #print(df['Tweet Text'])
     t=str(tweet[1]['Tweet Text'])
     rt_sources = get_rt_sources(t)
     if not rt_sources: continue
     for rt_source in rt_sources:
-        #print(tweet[1]['Screen Name'])
-        dict_={'RT':rt_source,
-              'user':tweet[1]['Screen Name'],
-              'RT_Count':tweet[1]['Retweet Count']}
-        G.add_edges_from([(rt_source,tweet[1]['Screen Name'])], weight=tweet[1]['Retweet Count'])
-        d[rt_source]="Influencer"
-        d[tweet[1]['Screen Name']]="U"
-
-        listOfTweets.append(dict_)
-df1 = pd.DataFrame(listOfTweets)
-print(d)
-#G = nx.from_pandas_edgelist(df1,'RT','user')
+        l_rt=[]
+        if ":" in rt_source:
+            d=re.split(r'@(\w+)' ,rt_source)
+            for rt in d:
+                if (rt.isalnum() or '_' in rt):
+                    G.add_edges_from([("@"+rt,tweet[1]['Screen Name'])], weight=tweet[1]['Retweet Count'])
+                    listOfTweets.append("@"+rt)
+        else :
+            G.add_edges_from([(rt_source,tweet[1]['Screen Name'])], weight=tweet[1]['Retweet Count'])
+            listOfTweets.append(rt_source)
+counts=Counter(listOfTweets).most_common(9)
+a=[]
+size_n=[]
+labels = {}
+for i in counts:
+    a.append(i[0])
+for node in G.nodes():
+    if node in a:
+        #set the node name as the key and the label as its value
+        print(node)
+        size_n.append(160)
+        labels[node] = node
+    else:
+        size_n.append(10)
 pos = nx.spring_layout(G)
-nx.draw_networkx_nodes(G, pos, cmap=plt.get_cmap('jet'), node_size = 50)
-nx.draw_networkx_edges(G, pos, edge_color='r', arrows=True)
-nx.draw_networkx_labels(G, pos, labels=d, ax=ax)
+plt.figure(figsize=(15,15))
 
-plt.show()
+_=nx.draw_networkx_nodes(G, pos, node_size=size_n,alpha = 0.7)
+_=nx.draw_networkx_edges(G, pos,edge_color='b' ,alpha=0.2  ,width=0.5)
+_=nx.draw_networkx_labels(G,pos,labels,font_size=12,font_color='r')
+
+
+#nx.eigenvector_centrality_numpy(G)
+#nx.degree_centrality(G)
+#nx.betweenness_centrality(G)
+#nx.clustering(G,'@LoomiAssistant')
