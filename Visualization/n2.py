@@ -7,8 +7,12 @@ import networkx as nx
 import matplotlib.pyplot as plt
 import warnings
 from collections import *
-warnings.filterwarnings("ignore")
 
+from random import randint
+warnings.filterwarnings("ignore")
+class OrderedCounter(Counter, OrderedDict):
+    pass
+#df = pd.DataFrame({'number':['123','234','345'],'contactnumber':['234','345','123'],'callduration':[1,2,4]})
 df = pd.read_csv('/content/r.csv', encoding = "ISO-8859-1")
 listOfTweets=[]
 d =[]
@@ -21,6 +25,7 @@ def get_rt_sources(tweet):
                  for source in tuple
                      if source not in ("RT", "via") ]
 for tweet in df.iterrows():
+    #print(df['Tweet Text'])
     t=str(tweet[1]['Tweet Text'])
     rt_sources = get_rt_sources(t)
     if not rt_sources: continue
@@ -30,10 +35,10 @@ for tweet in df.iterrows():
             d=re.split(r'@(\w+)' ,rt_source)
             for rt in d:
                 if (rt.isalnum() or '_' in rt):
-                    G.add_edges_from([("@"+rt,tweet[1]['Screen Name'])], weight=tweet[1]['Retweet Count'])
+                    G.add_edges_from([(tweet[1]['Screen Name'],"@"+rt)], weight=tweet[1]['Retweet Count'])
                     listOfTweets.append("@"+rt)
         else :
-            G.add_edges_from([(rt_source,tweet[1]['Screen Name'])], weight=tweet[1]['Retweet Count'])
+            G.add_edges_from([(tweet[1]['Screen Name'],rt_source)], weight=tweet[1]['Retweet Count'])
             listOfTweets.append(rt_source)
 counts=Counter(listOfTweets).most_common(9)
 a=[]
@@ -50,14 +55,14 @@ for node in G.nodes():
     else:
         size_n.append(10)
 pos = nx.spring_layout(G)
-plt.figure(figsize=(15,15))
+plt.figure(figsize=(12,12))
 
 _=nx.draw_networkx_nodes(G, pos, node_size=size_n,alpha = 0.7)
-_=nx.draw_networkx_edges(G, pos,edge_color='b' ,alpha=0.2  ,width=0.5)
+_=nx.draw_networkx_edges(G, pos ,alpha=0.2 )
 _=nx.draw_networkx_labels(G,pos,labels,font_size=12,font_color='r')
 
 
 #nx.eigenvector_centrality_numpy(G)
 #nx.degree_centrality(G)
 #nx.betweenness_centrality(G)
-#nx.clustering(G,'@LoomiAssistant')
+#nx.clustering(G,'@LoomiAssistant')            
