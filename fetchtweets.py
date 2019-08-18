@@ -2,11 +2,7 @@
 import csv
 import tweepy
 
-Consumer_key = 'GbXLvxUre8vn6FoluIxZr3TIN'
-Consumer_secret = '7Fcw23FRVHeLFa0z0erPud4E3venDeaVxdyrBMYw7W1QErj0B3'
 
-Access_token = '4684512198-8YpUm2H7GiQctI2lmKJO611u3XB0ybFA6npZJTB'
-Access_token_secret = 'ue9ulFmLWfvgdP6MtRGyrS3oYwtDt5bPMqLj8UVKwS58r'
 
 Auth = tweepy.OAuthHandler(Consumer_key, Consumer_secret)
 Auth.set_access_token(Access_token, Access_token_secret)
@@ -25,6 +21,8 @@ with open('result.csv', 'a') as csvFile:
     dict_writer.writeheader()
 
     for tweet in tweepy.Cursor(api.search, q='robotics workplace', since = "2019-07-08", until = "2019-08-13", rpp=100, lang = "en", tweet_mode='extended').items(1500):
+        print(tweet)
+        break
         dict_ = {'Screen Name': str(tweet.user.screen_name),
                  'User Name': tweet.user.name.encode('utf-8'),
                  'Tweet Created At': str(tweet.created_at),

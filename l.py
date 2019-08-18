@@ -16,3 +16,27 @@ def wordcloud(tweets,col):
     plt.title("Good Morning Datascience+")
     
 wordcloud(tweets,'text')
+#preprocess text in tweets by removing links, @UserNames, blank spaces, etc.
+def preprocessing_text(table):
+    #put everythin in lowercase
+    table['Tweet Text'] = table['Tweet Text'].str.lower()
+    #for tweet in table['Tweet Text']:
+    #table['Tweet Text']=bytes(table['Tweet Text'], "utf-8").decode("unicode_escape")
+    #print(table['Tweet Text'])
+        #break
+    for item in table:
+        print(item)
+    for i, tweet in enumerate(item['Tweet Text'] for item in table): 
+        print(i,tweet)
+    #Replace rt indicating that was a retweet
+    table['Tweet Text'] = table['Tweet Text'].str.replace('rt', '')
+    #Replace occurences of mentioning @UserNames
+    table['Tweet Text'] = table['Tweet Text'].replace(r'@\w+', '', regex=True)
+    #Replace links contained in the tweet
+    table['Tweet Text'] = table['Tweet Text'].replace(r'http\S+', '', regex=True)
+    table['Tweet Text'] = table['Tweet Text'].replace(r'www.[^ ]+', '', regex=True)
+    #remove numbers
+    table['Tweet Text'] = table['Tweet Text'].replace(r'[0-9]+', '', regex=True)
+    #replace special characters and puntuation marks
+    table['Tweet Text'] = table['Tweet Text'].replace(r'[!"#$%&()*+,-./:;<=>?@[\]^_`{|}~]', '', regex=True)
+    return table

@@ -1,57 +1,70 @@
 # pylint: skip-file
-
-# #Visualisation
-# import matplotlib.pyplot as plt
-# import matplotlib
-# import seaborn as sns
-# from IPython.display import display
-# from mpl_toolkits.basemap import Basemap
-# from wordcloud import WordCloud, STOPWORDS
-# matplotlib.style.use('ggplot')
-# pd.options.mode.chained_assignment = None
-# %matplotlib inline
+import matplotlib
+import re
+import numpy
 import pandas as pd
 import networkx as nx
-import re
-g = nx.DiGraph()
-all_tweets = pd.read_csv('../r.csv', encoding = "ISO-8859-1")
+import matplotlib.pyplot as plt
+import warnings
+from collections import *
+from itertools import count
 
-# all_tweets = [ tweet
-#                for page in search_results
-#                    for tweet in page["results"] ]
+from random import randint
+warnings.filterwarnings("ignore")
+class OrderedCounter(Counter, OrderedDict):
+    pass
+listOfTweets=[]
+d =[]
+G = nx.DiGraph()
 def get_rt_sources(tweet):
     rt_patterns = re.compile(r"(RT|via)((?:\b\W*@\w+)+)", re.IGNORECASE)
     return [ source.strip()
              for tuple in rt_patterns.findall(tweet)
                  for source in tuple
                      if source not in ("RT", "via") ]
-for tweet in all_tweets.iterrows():
-
-    t=tweet[1]['Tweet Text']
+for tweet in table.iterrows():
+    t=str(tweet[1]['Tweet Text'])
     rt_sources = get_rt_sources(t)
     if not rt_sources: continue
     for rt_source in rt_sources:
-        g.add_edge(rt_source, tweet[1]["Screen Name"])
+        l_rt=[]
+        if ":" in rt_source:
+            d=re.split(r'@(\w+)' ,rt_source)
+            for rt in d:
+                if (rt.isalnum() or '_' in rt):
+                    G.add_edges_from([(tweet[1]['Screen Name'],"@"+rt)], weight=tweet[1]['Retweet Count'])
+                    listOfTweets.append("@"+rt)
+        else :
+            G.add_edges_from([(tweet[1]['Screen Name'],rt_source)], weight=tweet[1]['Retweet Count'])
+            listOfTweets.append(rt_source)
+counts=Counter(listOfTweets).most_common(30)
+a=[]
+size_n=[]
+labels = {}
+n_color=[]
+for i in counts:
+    d={}
+    d['node_']=i[0]
+    d['frequency']=i[1]
+    a.append(d)
+for node in G.nodes():
+    size_n.append(5)
+    n_color.append('blue')
+for node in G.nodes():
+    for idx, item in enumerate(a):
+        if node in item['node_']:
+            size_n[idx] = round(item['frequency']/10)
+            n_color[idx] = 'red'
+            labels[item['node_']] = item['node_']
 
-print(g.number_of_nodes())
-print(g.number_of_edges())
-print(g.edges.data())
-#g.edges(data=True)([0])
-#print(len(nx.connected_components(g.to_undirected())))
-#sorted(nx.degree(g).values())
-OUT = "snl_search_results.dot"
+pos = nx.spring_layout(G)
+plt.figure(figsize=(12,12))
+_=nx.draw_networkx_nodes(G, pos, node_size=size_n,node_color=n_color,alpha = 0.7)
+_=nx.draw_networkx_edges(G, pos ,alpha=0.2,edge_color='r' )
+_=nx.draw_networkx_labels(G,pos,labels,font_size=12,font_color='g')
 
-try:
-    nx.drawing.write_dot(g, OUT)
 
-except ImportError as e:
-    # Help for Windows users:
-    # Not a general-purpose method, but representative of
-    # the same output write_dot would provide for this graph
-    # if installed and easy to implement
-
-    dot = ['"%s" -> "%s" [tweet_id=%s]' % (n1, n2, g[n1][n2]['tweet_id']) \
-        for n1, n2 in g.edges()]
-    f = open(OUT, 'w')
-    f.write('strict digraph {\n%s\n}' % (';\n'.join(dot),))
-    f.close()
+#nx.eigenvector_centrality_numpy(G)
+#nx.degree_centrality(G)
+#nx.betweenness_centrality(G)
+#nx.clustering(G,'@LoomiAssistant')
